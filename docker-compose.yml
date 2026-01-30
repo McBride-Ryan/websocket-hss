@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000" # Laravel Serve
+      - "5173:5173" # Vite HMR
+      - "8081:8081" # Reverb WebSocket (Updated)
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+    networks:
+      - laravel-net
+
+  mysql:
+    image: 'mysql:8.0'
+    container_name: laravel-mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel-net
+
+networks:
+  laravel-net:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
